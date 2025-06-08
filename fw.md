@@ -9,11 +9,9 @@ This document outlines the best practices, tools, and workflows for writing robu
 ### General Principles
 
 - **Function and Variable Naming:**
-  Use descriptive and consistent names. Functions should use `snake_case` or `lowerCamelCase`, while constants use `UPPER_CASE_WITH_UNDERSCORES`.
-
+  Use descriptive and consistent names. Functions should use `snake_case`, while constants use `UPPER_CASE_WITH_UNDERSCORES`.
 - **No Global Variables:**
   Minimize or eliminate global state to reduce coupling and improve testability.
-
 - **Use Guard Clauses:**
   Prefer early returns over deeply nested conditions.
 
@@ -52,7 +50,6 @@ This document outlines the best practices, tools, and workflows for writing robu
     /drivers # contains platform-specific code.
     /utils   # Generic helper functions.
   ```
-
 ### Reference
 
 - [CMU C Coding Style Guide](https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html)
