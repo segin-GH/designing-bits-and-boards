@@ -1,63 +1,149 @@
 # Embedded Firmware Development Guide
 
-This document outlines the best practices, tools, and workflows for writing robust, maintainable, and testable embedded firmware. Whether you're starting a new project or maintaining an existing one, this serves as a comprehensive reference.
+This document outlines the best practices, tools, and workflows for writing robust, maintainable, and testable embedded firmware.
+Whether you're starting a new project or maintaining an existing one, this serves as a comprehensive reference.
 
 ---
 
 ## 1. Coding Style and Guidelines
 
-### General Principles
-
-- **Function and Variable Naming:**
-  Use descriptive and consistent names. Functions should use `snake_case`, while constants use `UPPER_CASE_WITH_UNDERSCORES`.
-- **No Global Variables:**
-  Minimize or eliminate global state to reduce coupling and improve testability.
-- **Use Guard Clauses:**
-  Prefer early returns over deeply nested conditions.
-
-  ```c
-  int init_sensor() {
-      if (!sensor_present()) {
-          return -ENODEV;
-      }
-      if (!sensor_ready()) {
-          return -EAGAIN;
-      }
-
-      // Setup sensor
-      ...
-  }
-  ```
-
-- **Abstraction & Modularity:**  
-  Separate hardware-dependent code from business logic using layers or interfaces.
-
-  ```c
-  // hardware/led_driver.c
-  void led_on(int pin);
-
-  // app/status.c
-  void indicate_error() {
-      led_on(RED_LED_PIN);
-  }
-  ```
-
-- **Module Structure:**  
-  Organize files into clear modules:
-  ```sh
-  /src
-    /sensor  # code that interfaces with sensor.
-    /drivers # contains platform-specific code.
-    /utils   # Generic helper functions.
-  ```
-### Reference
+#### General Principles
 
 - [CMU C Coding Style Guide](https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html)
 - [Uncle Bob - Clean Code Series](https://www.youtube.com/watch?v=7EmboKQH8lM&list=PLUxszVpqZTNShoypLQW9a4dEcffsoZT4k&index=1)
+- Function and Variable Naming
+- No Global Variables
+- Use Guard Clauses
 
+```c
+  int gpio_set_state(gpio_t *gpio, bool state)
+  {
+    if (gpio == NULL)
+    {
+      return -ENODEV
+    }
+
+    gpio->state = state;
+
+    return 0;
+  }
+```
 ---
+## 2. Abstraction & Modularity
 
-## 2. Code Formatting with `clang-format`
+### Abstraction
+  Separate hardware-dependent code from business logic using layers or interfaces.
+```c
+// led_driver.h
+#ifndef LED_DRIVER_H
+#define LED_DRIVER_H
+
+#include <stdint.h>
+
+typedef enum {
+    LED_OFF = 0,
+    LED_ON  = 1
+} led_state_t;
+
+int led_driver_init(void);
+int led_driver_set_state(uint8_t led_id, led_state_t state);
+
+#endif // LED_DRIVER_H
+
+-----------------------------------------------------
+
+
+// led_driver.c
+#include "led_driver.h"
+
+// Example stub for hardware LED pins
+#define LED1_PIN 0
+
+int led_driver_init(void) {
+    // Configure GPIO for LED1
+    return gpio_configure(LED1_PIN, GPIO_OUTPUT);
+}
+
+int led_driver_set_state(uint8_t led_id, led_state_t state) {
+        return gpio_write(LED1_PIN, state);
+}
+
+-----------------------------------------------------
+
+// Business Logic
+// led_interface.h
+
+#ifndef LED_INTERFACE
+#define LED_INTERFACE
+
+int led_interface_set_wifi_connected(void);
+int led_interface_set_wifi_disconnected(void);
+int led_interface_sensor_error();
+int led_interface_syncing();
+int led_interface_syncing_complete();
+
+#endif // LED_INTERFACE
+
+
+// led_interface.c
+
+#include "led_interface.h"
+#include "led_driver.h"
+
+// Define LED IDs for different states
+#define LED_WIFI     1
+#define LED_SENSOR   2
+#define LED_SYNC     3
+
+int led_interface_set_wifi_connected(void) {
+    return led_driver_set_state(LED_WIFI, LED_STATE_ON);
+}
+
+int led_interface_set_wifi_disconnected(void) {
+    return led_driver_set_state(LED_WIFI, LED_STATE_OFF);
+}
+
+int led_interface_sensor_error(void) {
+    return led_driver_set_state(LED_SENSOR, LED_STATE_ON);  // Error = LED ON
+}
+
+int led_interface_sync_fail(void) {
+    return led_driver_set_state(LED_SYNC, LED_STATE_BLINK); // Blinking = fail
+}
+
+int led_interface_sync_success(void) {
+    return led_driver_set_state(LED_SYNC, LED_STATE_ON); // Solid ON = success
+}
+
+  ```
+
+####  **Module Structure:**
+  Organize files into clear modules:
+
+```sh
+/src
+│
+├── /core
+│   └── led_interface.c         # Business logic: event-driven LED control
+│   └── led_interface.h
+│
+├── /sensor
+│   └── sensor_handler.c        # Calls into led_interface on error
+│   └── sensor_handler.h
+│
+├── /drivers
+│   └── led_driver.c            # Talks to GPIO
+│   └── led_driver.h
+│   └── gpio.c                  # Platform GPIO interface
+│   └── gpio.h
+│
+├── /utils
+│   └── logger.c                # Logging or helper functions
+│   └── logger.h
+
+```
+
+## 3. Code Formatting with `clang-format`
 
 Use `.clang-format` file in the root of the repository to standardize formatting.
 
@@ -69,9 +155,9 @@ Use git hooks to enforce formatting on commit.
 
 ---
 
-## 3. Static Analysis
+## 4. Static Analysis
 
-Integrate static analyzers in your CI pipeline to catch bugs early.
+Integrate static analyzers in your CI.
 
 ### Tools
 
@@ -82,7 +168,7 @@ Integrate static analyzers in your CI pipeline to catch bugs early.
 ---
 
 
-## 4. Testing
+## 5. Testing
 
 Testing is critical in embedded firmware where debugging is limited.
 
