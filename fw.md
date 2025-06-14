@@ -16,17 +16,42 @@ Whether you're starting a new project or maintaining an existing one, this serve
 - Use Guard Clauses
 
 ```c
-  int gpio_set_state(gpio_t *gpio, bool state)
-  {
-    if (gpio == NULL)
+    // Gaurd clause pattern
+    int sensor_write(uint8_t * data, size_t len)
     {
-      return -ENODEV
+        if (!data || len <= 0)
+        {
+            return -EINVAL;
+        }
+
+        if (!sensor_is_ready())
+        {
+            return -ENODEV;
+        }
+
+        return i2c_write(SENSOR_ADDR, data, len);
     }
 
-    gpio->state = state;
 
-    return 0;
-  }
+    // Without Guard Clause
+    int sensor_write(uint8_t * data, size_t len)
+    {
+        if (data != NULL && len > 0)
+        {
+            if (sensor_is_ready())
+            {
+                return i2c_write(SENSOR_ADDR, data, len);
+            }
+            else
+            {
+                return -ENODEV;
+            }
+        }
+        else
+        {
+            return -EINVAL;
+        }
+    }
 ```
 ---
 ## 2. Abstraction & Modularity
