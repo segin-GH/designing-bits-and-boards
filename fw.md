@@ -167,6 +167,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#sum
 feat(sensor): add temperature calibration
 fix(comm): resolve UART framing bug
 ```
+[Git Guard](https://github.com/segin-GH/gitGuard) ensures that all commit messages adhere to predefined rules and standards set by [convetional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) 
 
 ### Branching
 
