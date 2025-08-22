@@ -144,6 +144,17 @@ Use tools like [VTrace](https://github.com/segin-GH/VTrace) to embed version inf
 #define GIT_SHA_SHORT     "3f8a2cd"
 #define GIT_TAG           "v1.0.3-dirty"
 ```
+eg:
+```sh
+[00:00:01.370,544] <inf> bs: Build Info:
+[00:00:01.374,847] <inf> bs:   Timestamp    : 2025-08-18 20:22:18.621231
+[00:00:01.381,958] <inf> bs:   Branch       : dev/1.3.0
+[00:00:01.387,603] <inf> bs:   Describe     : v1.3.0-rc8-0-gb15986f-dirty
+[00:00:01.394,836] <inf> bs:   SHA (full)   : b15986fc5f615873dac97dfd5b8ff851d3ec501f
+[00:00:01.403,808] <inf> bs:   SHA (short)  : b15986f-dirty
+[00:00:01.409,790] <inf> bs:   Tag          : v1.3.0-rc8
+
+```
 ---
 
 ## 7. GitHub Workflow
